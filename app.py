@@ -3,43 +3,72 @@ import pandas as pd
 from db_fxns import * 
 import streamlit.components.v1 as stc
 
-
-
 # Data Viz Pkgs
 import plotly.express as px 
 
 
 HTML_BANNER = """
-    <div style="background-color:#464e5f;padding:10px;border-radius:10px">
-    <h1 style="color:white;text-align:center;">ToDo App (CRUD)</h1>
-    <p style="color:white;text-align:center;">Built with Streamlit</p>
-    </div>
-    """
+	<div style="background-color:#464e5f;padding:10px;border-radius:10px">
+	<h1 style="color:white;text-align:center;">MES Placard Generator</h1>
+	<p style="color:white;text-align:center;">Built with Streamlit</p>
+	</div>
+	"""
 
+@st.cache(show_spinner=False)
+def load_data(path):
+	return pd.read_csv(path)
 
 def main():
 	stc.html(HTML_BANNER)
 
+	wo_data = load_data('workorders.csv')
+	
+	column_names = ['ctrl_point_id', 'magnitude', 'subsystem', 'lockout_proced', 'verify_proced']
+	
+	energy_sources_df = pd.read_csv('energy_sources.csv')
 
-	menu = ["Create","Read","Update","Delete","About"]
+	menu = ["Work Order", "Manual"]
 	choice = st.sidebar.selectbox("Menu",menu)
 	create_table()
 
-	if choice == "Create":
-		st.subheader("Add Item")
+	if choice == "Work Order":
+		workorder = st.text_input('Work Order Number', '')
+		curr_wo = wo_data.loc[wo_data['workorder'] == workorder]
+		st.write("Work Order Details", curr_wo)
+		asset_name = curr_wo['asset_name']
+
+		st.subheader("Add Energy Sources")
 		col1,col2 = st.beta_columns(2)
 		
 		with col1:
-			task = st.text_area("Task To Do")
+			energy_type = st.selectbox("Energy Source Type", ["Electrical", "Hydraulic", 'Water', 'Air', 'Vacuum', 'Chemical', 'Gravitational'])
 
 		with col2:
-			task_status = st.selectbox("Status",["ToDo","Doing","Done"])
-			task_due_date = st.date_input("Due Date")
+			subsystem = st.text_input("Subsystem (Leave blank if N/A)", "")
+			if energy_type == "Electrical":
+				device = st.selectbox("Device",["Disconnect","Circuit Breaker","Plug/Cord"])
+				magnitude = st.selectbox('Voltage', ['120V', '240V', '480V'])
+		
+				# Standard inputs for each energy control point
+				ctrl_point_id = len(energy_sources_df)+1
+				lockout_proced = "Lockout Procedure"
+				verify_proced = "Verification Procedure"
+		
+		if st.button("Add Energy Source"):
+			energy_source_dict = {'ctrl_point_id':ctrl_point_id, 'magnitude':magnitude, 'subsystem':subsystem, 'lockout_proced':lockout_proced, 'verify_proced':verify_proced}
+			energy_sources_df.loc[len(energy_sources_df)] = energy_source_dict
+			energy_sources_df.to_csv('energy_sources.csv', index=False)
+		st.write(energy_sources_df)
 
-		if st.button("Add Task"):
-			add_data(task,task_status,task_due_date)
-			st.success("Added ::{} ::To Task".format(task))
-
+	elif choice == "Manual":
+		asset_name = st.text_input('Asset Name', '')
+		cmms_equipment_id = st.text_input('CMMS Equipment #', '')
+		property_id = st.text_input('Boeing Property ID', '')
+		equipment_manufacturer = st.text_input('Equipment Manufacturer', '')
+		equipment_model = st.text_input('Equipment Model', '')
+		location_building = st.text_input('Building', '')
+		location_floor = st.text_input('Floor', '')
+		location_column = st.text_input('Column', '')
 
 	elif choice == "Read":
 		# st.subheader("View Items")
