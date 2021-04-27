@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd 
 from db_fxns import * 
 import streamlit.components.v1 as stc
+import csv
+import os
 
 # Data Viz Pkgs
 import plotly.express as px 
@@ -23,9 +25,8 @@ def main():
 
 	wo_data = load_data('workorders.csv')
 	
-	column_names = ['ctrl_point_id', 'magnitude', 'subsystem', 'lockout_proced', 'verify_proced']
 	
-	energy_sources_df = pd.read_csv('energy_sources.csv')
+
 
 	menu = ["Work Order", "Manual"]
 	choice = st.sidebar.selectbox("Menu",menu)
@@ -36,6 +37,14 @@ def main():
 		curr_wo = wo_data.loc[wo_data['workorder'] == workorder]
 		st.write("Work Order Details", curr_wo)
 		asset_name = curr_wo['asset_name']
+
+		filename = 'data/{}_energy_sources.csv'.format(workorder)
+		if os.path.exists(filename):
+			energy_sources_df = pd.read_csv(filename)
+		else:
+			column_names = ['ctrl_point_id', 'magnitude', 'subsystem', 'lockout_proced', 'verify_proced']
+			energy_sources_df = pd.DataFrame(columns=column_names)
+
 
 		st.subheader("Add Energy Sources")
 		col1,col2 = st.beta_columns(2)
@@ -57,7 +66,7 @@ def main():
 		if st.button("Add Energy Source"):
 			energy_source_dict = {'ctrl_point_id':ctrl_point_id, 'magnitude':magnitude, 'subsystem':subsystem, 'lockout_proced':lockout_proced, 'verify_proced':verify_proced}
 			energy_sources_df.loc[len(energy_sources_df)] = energy_source_dict
-			energy_sources_df.to_csv('energy_sources.csv', index=False)
+			energy_sources_df.to_csv(filename, index=False)
 		st.write(energy_sources_df)
 
 	elif choice == "Manual":
