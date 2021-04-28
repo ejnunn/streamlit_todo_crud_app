@@ -1,3 +1,3 @@
-﻿workorder,asset_name,location_building,location_floor,location_column,equipment_manufacturer,equipment_model,surveyor,SME_surveyor_support,maintaining_org_budget_num,site_focal
-W123456,Grinder,9-51,1,C2,Manufacturer Inc.,New Model 3000,Eric Nunn, John Henrickson,,
-W123457,Autoclave #5,9-101,1,F2,AC Manufacturer,Big Machine 9000,Eric Nunn, John Henrickson,,
+﻿workorder,asset_name,cmms_equipment_id,property_id,location_building,location_floor,location_column,equipment_manufacturer,equipment_model,surveyor,SME_surveyor_support,maintaining_org_budget_id,site_focal
+W123456,Grinder,eq_id,prop_id,9-51,1,C2,Manufacturer Inc.,New Model 3000,Eric Nunn, John Henrickson,,
+W123457,Autoclave #5,eq_id,prop_id,9-101,1,F2,AC Manufacturer,Big Machine 9000,Eric Nunn, John Henrickson,,

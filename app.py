@@ -29,45 +29,85 @@ def main():
 	choice = st.sidebar.selectbox("Menu",menu)
 
 	if choice == "Work Order":
-		workorder = st.text_input('Work Order Number', '')
+		workorder = st.sidebar.text_input('Work Order Number', '')
 		curr_wo = wo_data.loc[wo_data['workorder'] == workorder]
 		st.write("Work Order Details", curr_wo)
 
-		filename = 'data/{}_energy_sources.csv'.format(workorder)
+		asset_name = curr_wo['asset_name']
+		cmms_equipment_id = curr_wo['cmms_equipment_id']
+		property_id = curr_wo['property_id']
+		equipment_manufacturer = curr_wo['equipment_manufacturer']
+		equipment_model = curr_wo['equipment_model']
+		location_building = curr_wo['location_building']
+		location_floor = curr_wo['location_floor']
+		location_column = curr_wo['location_column']
+		surveyor = curr_wo['surveyor']
+		sme_surveyor_support = curr_wo['SME_surveyor_support']
+		maintaining_org_budget_id = curr_wo['maintaining_org_budget_id']
+		site_focal = curr_wo['site_focal']
+
+		filename = 'data/workorders/{}_energy_sources.csv'.format(workorder)
+		if os.path.exists(filename):
+			energy_sources_df = pd.read_csv(filename)
+		else:
+			energy_sources_df = pd.DataFrame(columns=form_column_names)
+	
+	elif choice == "Manual":
+		asset_name = st.sidebar.text_input('Asset Name', '')
+		cmms_equipment_id = st.sidebar.text_input('CMMS Equipment #', '')
+		property_id = st.sidebar.text_input('Boeing Property ID', '')
+		equipment_manufacturer = st.sidebar.text_input('Equipment Manufacturer', '')
+		equipment_model = st.sidebar.text_input('Equipment Model', '')
+		location_building = st.sidebar.text_input('Building', '')
+		location_floor = st.sidebar.text_input('Floor', '')
+		location_column = st.sidebar.text_input('Column', '')
+		surveyor = st.sidebar.text_input('Surveyor', '')
+		sme_surveyor_support = st.sidebar.text_input('SME Surveyor Support', '')
+		maintaining_org_budget_id = st.sidebar.text_input('Maintaining Organization Budget ID', '')
+		site_focal = st.sidebar.text_input('Site Focal', '')
+
+		filename = 'data/manual/{}_energy_sources.csv'.format(property_id)
 		if os.path.exists(filename):
 			energy_sources_df = pd.read_csv(filename)
 		else:
 			energy_sources_df = pd.DataFrame(columns=form_column_names)
 
-		if st.button('Restart MES Placard'):
-			energy_sources_df = pd.DataFrame(columns=form_column_names)
-			energy_sources_df.to_csv(filename, index=False)
+	if st.button('Restart MES Placard'):
+		energy_sources_df = pd.DataFrame(columns=form_column_names)
+		energy_sources_df.to_csv(filename, index=False)
 
-		st.subheader("Add Energy Sources")
-		col1,col2 = st.beta_columns(2)
-		
-		with col1:
-			energy_type = st.selectbox("Energy Source Type", ["Electrical", "Hydraulic", 'Water', 'Air Pressure', 'Vacuum', 'Chemical', 'Gravitational'])
-
-		with col2:
-			ctrl_point_id = ENERGY_ABREVS[energy_type] + str(len(energy_sources_df.loc[energy_sources_df['energy_type'] == energy_type])+1)
-			magnitude = ''
-			subsystem = st.text_input("Subsystem (Leave blank if N/A)", "")
-			lockout_proced = ''
-			verify_proced = ''
-			if energy_type == "Electrical":
-				device = st.selectbox("Device",["Disconnect","Circuit Breaker","Plug/Cord"])
-				magnitude = st.selectbox('Voltage', ['120V', '240V', '480V'])
-
-
-				lockout_proced = LOCKOUT_PROCEDURES[energy_type][device].replace('_', magnitude)
-				verify_proced = VERIFY_PROCEDURES[energy_type][device].replace('_', magnitude)
+	st.subheader("Add Energy Sources")
+	col1,col2 = st.beta_columns(2)
 	
+	with col1:
+		energy_type = st.selectbox("Energy Source Type", list(ENERGY_ABREVS.keys()))
+
+	with col2:
+		ctrl_point_id = ENERGY_ABREVS[energy_type] + str(len(energy_sources_df.loc[energy_sources_df['energy_type'] == energy_type])+1)
+		magnitude = ''
+		subsystem = st.text_input("Subsystem (Leave blank if N/A)", "")
+		lockout_proced = ''
+		verify_proced = ''
+		if energy_type == "Electrical":
+			device = st.selectbox("Device",["Disconnect","Circuit Breaker","Plug/Cord"])
+			magnitude = st.selectbox('Voltage', ['120V', '240V', '480V'])
+
+
+			lockout_proced = LOCKOUT_PROCEDURES[energy_type][device].replace('_', magnitude)
+			verify_proced = VERIFY_PROCEDURES[energy_type][device].replace('_', magnitude)
+
+	col1,col2 = st.beta_columns(2)
+	with col1:
 		if st.button("Add Energy Source"):
 			energy_source_dict = {'ctrl_point_id':ctrl_point_id, 'energy_type':energy_type, 'magnitude':magnitude, 'subsystem':subsystem, 'lockout_proced':lockout_proced, 'verify_proced':verify_proced}
 			energy_sources_df.loc[len(energy_sources_df)] = energy_source_dict
 			energy_sources_df.to_csv(filename, index=False)
-		st.write(energy_sources_df)
+	
+	with col2:
+		if st.button("Create Report"):
+			st.balloons()
+
+	st.write(energy_sources_df)
 
 
 
@@ -75,15 +115,7 @@ def main():
 
 
 
-	elif choice == "Manual":
-		asset_name = st.text_input('Asset Name', '')
-		cmms_equipment_id = st.text_input('CMMS Equipment #', '')
-		property_id = st.text_input('Boeing Property ID', '')
-		equipment_manufacturer = st.text_input('Equipment Manufacturer', '')
-		equipment_model = st.text_input('Equipment Model', '')
-		location_building = st.text_input('Building', '')
-		location_floor = st.text_input('Floor', '')
-		location_column = st.text_input('Column', '')
+
 
 
 
